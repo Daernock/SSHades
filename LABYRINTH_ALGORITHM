@@ -1,0 +1,212 @@
+    // Code snippet
+    // This was a really fun algorithm to write.
+    // It took me quite some time to get it the way I wanted,
+    // but I had a good time coming up with it, and I'm quite
+    // proud of the outcome.
+
+    public void MoveMaze()
+    {
+        Random random = new Random();
+        int move = random.Next(2);
+
+        ((Game1)Game).MovingMaze = true;
+
+        switch (move)
+        {
+            case 0:
+                MoveRows();
+                break;
+            case 1:
+                MoveColumns();
+                break;
+        }
+    }
+    // Move all rows that can move.
+    public void MoveRows()
+    {
+        _movingColumns = true;
+        _counter = 0;
+        _staticCounter = 0;
+
+        for (int index = 0; index < _labyrinth.Count; index += LabyrinthWidth)
+        {
+            _isStatic = false;
+
+            for (int innerIndex = index; innerIndex < index + LabyrinthWidth; ++innerIndex)
+            {
+                if (_labyrinth.ElementAt(innerIndex).IsStatic)
+                    _isStatic = true;
+            }
+
+            if (!_isStatic)
+            {
+                _staticRowBoolInts.Add(index / LabyrinthWidth);
+
+                for (int innerIndex = index; innerIndex < index + LabyrinthWidth; ++innerIndex)
+                    _labyrinth.ElementAt(innerIndex).MovingColumns = true;
+
+                if (_extraTiles.Count < LabyrinthWidth - _staticCounter)
+                {
+                    Pose pose = _labyrinth.ElementAt(index).Pose;
+                    pose.Position = new Vector3F(-6.2f * LabyrinthWidth, 0.0f, -_staticRowBoolInts.ElementAt(index / LabyrinthWidth) * 6.2f);
+
+                    int row = _staticRowBoolInts.ElementAt(index / LabyrinthWidth);
+                    int column = LabyrinthWidth - 1;
+
+                    Tile newTile = CreateNewTile(_labyrinth.ElementAt(index).Model, 
+                                                    _labyrinth.ElementAt(index).CollisionModel,
+                                                        _labyrinth.ElementAt(index).Name,
+                                                            pose,
+                                                                _labyrinth.ElementAt(index).RotationY,
+                                                                    new Vector3(pose.Position.X, pose.Position.Y, pose.Position.Z),
+                                                                        _labyrinth.ElementAt(index).IsStatic,
+                                                                            _labyrinth.ElementAt(index).Type,
+                                                                                row,
+                                                                                    column,
+                                                                                        _labyrinth.ElementAt(index).ID);
+                    newTile.MovingColumns = true;
+                    _extraTiles.Add(newTile);
+                }
+            }
+            else
+            {
+                ++_staticCounter;
+                _staticRowBoolInts.Add(1);
+            }
+        }
+    }
+    // Move all columns that can move.
+    public void MoveColumns()
+    {
+        _movingRows = true;
+        _counter = 0;
+        _staticCounter = 0;
+
+        for (int index = 0; index < LabyrinthWidth; ++index)
+        {
+            _isStatic = false;
+
+            for (int counter = 0; counter < LabyrinthWidth; ++counter)
+            {
+                if (_labyrinth.ElementAt(index + LabyrinthWidth * counter).IsStatic)
+                    _isStatic = true;
+            }
+
+            if (!_isStatic)
+            {
+                _staticColumnBoolInts.Add(index);
+
+                for (int counter = 0; counter < LabyrinthWidth; ++counter)
+                    _labyrinth.ElementAt(index + LabyrinthWidth * counter).MovingRows = true;
+
+                if (_extraTiles.Count < LabyrinthWidth - _staticCounter)
+                {
+                    Pose pose = _labyrinth.ElementAt(index).Pose;
+                    pose.Position = new Vector3F(-_staticColumnBoolInts.ElementAt(index) * 6.2f, 0.0f, -6.2f * LabyrinthWidth);
+
+                    int row = LabyrinthWidth - 1;
+                    int column = _staticColumnBoolInts.ElementAt(index);
+
+                    Tile newTile = CreateNewTile(_labyrinth.ElementAt(index).Model,
+                                                    _labyrinth.ElementAt(index).CollisionModel,
+                                                        _labyrinth.ElementAt(index).Name,
+                                                            pose,
+                                                                _labyrinth.ElementAt(index).RotationY,
+                                                                    new Vector3(pose.Position.X, pose.Position.Y, pose.Position.Z),
+                                                                        _labyrinth.ElementAt(index).IsStatic,
+                                                                            _labyrinth.ElementAt(index).Type,
+                                                                                row,
+                                                                                    column,
+                                                                                        _labyrinth.ElementAt(index).ID);
+                    newTile.MovingRows = true;
+                    _extraTiles.Add(newTile);
+                }
+            }
+            else
+            {
+                ++_staticCounter;
+                _staticColumnBoolInts.Add(1);
+            }
+        }
+    }
+
+    // Move one row seperately.
+    public void MoveRow(int row)
+    {
+        _movingColumns = true;
+        _counter = 0;
+        _staticCounter = 0;
+
+        _isStatic = false;
+
+        for (int index = row * LabyrinthWidth; index < LabyrinthWidth * row + LabyrinthWidth; ++index)
+        {
+            if (_labyrinth.ElementAt(index).IsStatic)
+                _isStatic = true;
+        }
+
+        if (!_isStatic)
+        {
+            for (int index = row * LabyrinthWidth; index < LabyrinthWidth * row + LabyrinthWidth; ++index)
+            {
+                _labyrinth.ElementAt(index).MovingRows = true;
+
+                Pose pose = _labyrinth.ElementAt(index).Pose;
+                pose.Position = new Vector3F(-6.2f * LabyrinthWidth, 0.0f, -6.2f * row);
+
+                Tile newTile = CreateNewTile(_labyrinth.ElementAt(index).Model,
+                                                _labyrinth.ElementAt(index).CollisionModel,
+                                                    _labyrinth.ElementAt(index).Name,
+                                                        pose,
+                                                            _labyrinth.ElementAt(index).RotationY,
+                                                                (Vector3)pose.Position,
+                                                                    _labyrinth.ElementAt(index).IsStatic,
+                                                                        _labyrinth.ElementAt(index).Type,
+                                                                            row,
+                                                                                LabyrinthWidth - 1, //column
+                                                                                    _labyrinth.ElementAt(index).ID);
+                newTile.MovingRows = true;
+                _extraTiles.Add(newTile);
+            }
+        }
+    }
+    // Move one column seperately.
+    public void MoveColumn(int column)
+    {
+        _movingRows = true;
+        _counter = 0;
+        _staticCounter = 0;
+
+        _isStatic = false;
+
+        for (int index = column; index < column + (LabyrinthWidth * (LabyrinthWidth - 1)); index += LabyrinthWidth)
+        {
+            if (_labyrinth.ElementAt(index).IsStatic)
+                _isStatic = true;
+        }
+
+        if (!_isStatic)
+        {
+            for (int index = column; index < column + (LabyrinthWidth * (LabyrinthWidth - 1)); index += LabyrinthWidth)
+            {
+                _labyrinth.ElementAt(index).MovingColumns = true;
+
+                Pose pose = _labyrinth.ElementAt(index).Pose;
+                pose.Position = new Vector3F(-6.2f * column, 0.0f, -6.2f * LabyrinthWidth);
+
+                Tile newTile = CreateNewTile(_labyrinth.ElementAt(index).Model,
+                                                _labyrinth.ElementAt(index).CollisionModel,
+                                                    _labyrinth.ElementAt(index).Name,
+                                                        pose,
+                                                            _labyrinth.ElementAt(index).RotationY,
+                                                                (Vector3)pose.Position,
+                                                                    _labyrinth.ElementAt(index).IsStatic,
+                                                                        _labyrinth.ElementAt(index).Type,
+                                                                            LabyrinthWidth - 1, //row
+                                                                                column,
+                                                                                    _labyrinth.ElementAt(index).ID);
+                newTile.MovingColumns = true;
+                _extraTiles.Add(newTile);
+            }
+        }
+    }
